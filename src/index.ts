@@ -1,48 +1,179 @@
-type DocumentContentEntry = string[];
+import {
+  WikitextDocumentBranch,
+  WikitextObject,
+  GeneralWord,
+  Pronunciation,
+  Word
+} from "./types";
+import { headingTree, searchTreeProperty, splitLines } from "./tree";
+import { objectsFromString, objectStringToPlaintext } from "./objects";
 
-interface DocumentBranch {
-  _content?: DocumentContentEntry;
-  [key: string]: DocumentBranch | DocumentContentEntry;
-}
+const wordTypes = {
+  adj: "Adjective",
+  adv: "Adverb",
+  con: "Conjunction",
+  det: "Determiner",
+  interj: "Interjection",
+  noun: "Noun",
+  num: "Numeral",
+  part: "Particle",
+  postp: "Postposition",
+  prep: "Preposition",
+  pronoun: "Pronoun",
+  properNoun: "Proper_noun",
+  verb: "Verb"
+};
 
-export function isDocumentBranch(
-  obj: DocumentBranch | DocumentContentEntry
-): obj is DocumentBranch {
-  return "_content" in obj;
-}
-
-function headingTree(lines: string[]): DocumentBranch {
-  if (lines.length == 1 && lines[0] === "") return {};
-  const output: DocumentBranch = {};
-  for (let ln = 0; ln < lines.length; ln++) {
-    if (/={2,6}[^=]*={2,6}/.test(lines[ln])) {
-      const headingLevel: number = /^=*/.exec(lines[ln])[0].length;
-
-      let blockend: number =
-        lines.slice(ln + 1).findIndex(line => {
-          return (
-            /={2,6}[^=]*={2,6}/.test(line) &&
-            /^=*/.exec(line)[0].length <= headingLevel
-          );
-        }) + ln;
-      if (blockend === ln - 1) {
-        blockend = lines.length;
-      }
-
-      output[/={2,6}([^=]*)={2,6}/.exec(lines[ln])[1]] = headingTree(
-        lines.slice(ln + 1, blockend + 1)
+function interpretPronunciation(
+  word: GeneralWord,
+  pronunciationBranch: WikitextDocumentBranch
+): GeneralWord {
+  pronunciationBranch._content.forEach((line: string) => {
+    const objs: WikitextObject[] = objectsFromString(line);
+    // Pronunciation
+    if (objs.findIndex(obj => obj[0] === "IPA") !== -1) {
+      const pronunciation: Pronunciation = {
+        tags: objs.filter(o => o[0] === "a").map(o => o[1]),
+        ipa: objs.find(o => o[0] === "IPA").find(s => /\/[^/]*\//.test(s))
+      };
+      word.pronunciations.push(pronunciation);
+    } else if (objs.findIndex(obj => obj[0] === "hyphenation") !== -1) {
+      word.hyphenation = objs
+        .find(obj => obj[0] === "hyphenation")
+        .slice(1, -1);
+    } else if (objs.findIndex(obj => obj[0] === "rhymes") !== -1) {
+      word.rhymes = word.rhymes.concat(
+        objs.find(obj => obj[0] === "rhymes").slice(1, -1)
       );
-      if (blockend > ln) ln = blockend;
-    } else {
-      if (!output._content) output._content = [];
-      output._content.push(lines[ln]);
+    }
+  });
+  return word;
+}
+
+function interpretAlternativeForms(
+  word: GeneralWord,
+  altFormBranch: WikitextDocumentBranch
+): GeneralWord {
+  altFormBranch._content.forEach(line => {
+    const objs = objectsFromString(line);
+    if (objs.findIndex(obj => obj[0] === "l" && obj[1] === "en") !== -1) {
+      word.alternativeForms.push({
+        word: objs.find(obj => obj[0] === "l" && obj[1] === "en")[2],
+        qualifiers: objs
+          .filter(obj => obj[0] === "qualifier")
+          .map(obj => obj[1])
+      });
+    }
+  });
+  return word;
+}
+
+function interpretDerivedTerms(
+  word: GeneralWord,
+  dervTermsBranch: WikitextDocumentBranch
+): GeneralWord {
+  dervTermsBranch._content.forEach(line => {
+    const objs = objectsFromString(line);
+    if (objs.findIndex(obj => obj[0] === "der3" && obj[1] === "en") !== -1) {
+      const obj: string[] = objs.find(
+        obj => obj[0] === "der3" && obj[1] === "en"
+      );
+      word.derivedTerms = word.derivedTerms.concat(
+        obj.slice(2).filter(o => !o.startsWith("title="))
+      );
+    }
+  });
+  return word;
+}
+
+function interpretTree(
+  word: string,
+  wikitextTree: WikitextDocumentBranch
+): GeneralWord[] {
+  if (!wikitextTree.English) return [];
+  const treeEnglish = wikitextTree.English;
+  let generalWord: GeneralWord = {
+    word: word,
+    alternativeForms: [],
+    derivedTerms: [],
+    relatedTerms: [],
+    pronunciations: [],
+    rhymes: [],
+    anagrams: []
+  };
+  generalWord = interpretPronunciation(
+    generalWord,
+    searchTreeProperty(treeEnglish, "Pronunciation")
+  );
+  generalWord = interpretAlternativeForms(
+    generalWord,
+    searchTreeProperty(treeEnglish, "Alternative_forms")
+  );
+  generalWord = interpretDerivedTerms(
+    generalWord,
+    searchTreeProperty(treeEnglish, "Derived_terms")
+  );
+  generalWord.etymology = objectStringToPlaintext(
+    searchTreeProperty(treeEnglish, "Etymology")._content.reduce((a, b) =>
+      (a.trim() + " " + b.trim()).trim()
+    )
+  );
+
+  const presentWordTypes = {};
+  wordTypes;
+  for (const abbrv in wordTypes) {
+    const wordType: string = wordTypes[abbrv];
+    const propertyBranch = searchTreeProperty(treeEnglish, wordType);
+    if (propertyBranch !== null) {
+      presentWordTypes[abbrv] = propertyBranch;
     }
   }
-  return output;
+
+  const words: Word[] = [];
+  for (const type in presentWordTypes) {
+    const wordTypeBranch = presentWordTypes[type];
+    if (
+      wordTypeBranch._objects.findIndex(o => o[0] === "misspelling of") !== -1
+    ) {
+      continue;
+    }
+    switch (type) {
+      case "adj":
+        break;
+      case "adv":
+        break;
+      case "con":
+        break;
+      case "det":
+        break;
+      case "interj":
+        break;
+      case "noun":
+        break;
+      case "num":
+        break;
+      case "part":
+        break;
+      case "postp":
+        break;
+      case "prep":
+        break;
+      case "pronoun":
+        break;
+      case "properNoun":
+        break;
+      case "verb":
+        break;
+      default:
+        throw "Invalid word type";
+    }
+  }
+
+  if (presentWordTypes) return [generalWord];
 }
 
-export function wikitextToJSON(wikitext: string): DocumentBranch {
-  const wikitextLines = wikitext.split(/\r?\n/).map(l => l.trim());
-  const output = headingTree(wikitextLines);
+export function wikitextToJSON(word: string, wikitext: string): GeneralWord[] {
+  const wikitextLines = splitLines(wikitext);
+  const output = interpretTree(word, headingTree(wikitextLines));
   return output;
 }

@@ -1,0 +1,94 @@
+export type WikitextDocumentContent = string[];
+
+export interface WikitextDocumentBranch {
+  _content?: WikitextDocumentContent;
+  _objects?: WikitextObject[];
+  [key: string]:
+    | WikitextDocumentBranch
+    | WikitextDocumentContent
+    | WikitextObject[];
+}
+
+export type WikitextObject = string[];
+
+export function isDocumentBranch(
+  obj: WikitextDocumentBranch | WikitextDocumentContent | WikitextObject[]
+): obj is WikitextDocumentBranch {
+  return "_content" in obj;
+}
+
+export enum MeaningType {
+  meaning = "# ",
+  example = "#:",
+  quote = "#*"
+}
+
+export type WordType =
+  | "adj"
+  | "adv"
+  | "con"
+  | "det"
+  | "interj"
+  | "noun"
+  | "num"
+  | "part"
+  | "postp"
+  | "prep"
+  | "pronoun"
+  | "properNoun"
+  | "verb";
+
+export interface Pronunciation {
+  tags: string[]; // "RP" for Received Pronunciation, "GA" or "GenAm" for General American, there is also "stressed" and "unstressed" (in should)
+  ipa: string;
+}
+
+export interface AlternativeForm {
+  word: string;
+  qualifiers: string[];
+}
+
+export interface GeneralWord {
+  word: string;
+  alternativeForms?: AlternativeForm[];
+  derivedTerms?: string[];
+  relatedTerms?: string[];
+  pronunciations?: Pronunciation[];
+  hyphenation?: string[]; // An array of the syllables
+  rhymes?: string[]; // An array of IPA rhymes
+  etymology?: string; // Origin of the word
+  anagrams?: string[]; // Same letters, different order
+}
+
+export interface Word extends GeneralWord {
+  type: WordType;
+  synonyms?: string[]; // Other words with the same meaning
+  antonyms?: string[]; // Opposites
+  hyponyms?: string[]; // More specific words
+  hypernyms?: string[]; // More general words
+  meronyms?: string[]; // A part of this (tree => branch)
+}
+
+export type DegreeOfComparison = "positive" | "comparative" | "superlative";
+
+export interface Adjective extends Word {
+  type: "adj";
+  degreeOfComparison: DegreeOfComparison;
+  positiveForm: string;
+}
+
+export interface Adverb extends Word {
+  type: "adv";
+  degreeOfComparison: DegreeOfComparison;
+  positiveForm: string;
+}
+
+export interface Noun extends Word {
+  type: "noun" | "properNoun";
+  grammaticalNumber: "singular" | "plural";
+  singularForm: string;
+}
+
+export interface Verb extends Word {
+  type: "verb";
+}
