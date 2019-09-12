@@ -1,6 +1,20 @@
-import { MeaningType } from './types';
+import { MeaningType, Meaning } from './types';
 
-export function parseMeaning(content: string[]): any[] {
+export function extractMeaningContext(meaning: Meaning): Meaning {
+    const matches = meaning.meaning.match(/\{\{lb\|en\|[^\{\}]*\}\}/);
+    if (matches === null || matches.length <= 0) return meaning;
+    meaning.contexts = matches[0]
+        .slice(8, -2)
+        .split('|')
+        .filter(word => word !== '_' && word !== 'or')
+        .map(context => context.trim());
+    meaning.meaning = meaning.meaning
+        .replace(/\{\{lb\|en\|[^\{\}]*\}\}/g, '')
+        .trim();
+    return meaning;
+}
+
+export function parseMeaning(content: string[]): Meaning[] {
     const lines = content
         .filter(line => line.startsWith('#'))
         .map(line => {
@@ -14,11 +28,12 @@ export function parseMeaning(content: string[]): any[] {
     lines.forEach(line => {
         switch (line.type) {
             case MeaningType.meaning:
-                meanings.push({
+                const newMeaning: Meaning = {
                     meaning: line.content,
                     examples: [],
                     quotes: [],
-                });
+                };
+                meanings.push(extractMeaningContext(newMeaning));
                 break;
             case MeaningType.example:
                 meanings[meanings.length - 1].examples.push(line.content);

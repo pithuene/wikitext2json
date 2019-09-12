@@ -23,6 +23,13 @@ export enum MeaningType {
     quote = '#*',
 }
 
+export interface Meaning {
+    contexts?: string[];
+    meaning: string;
+    examples: string[];
+    quotes: string[];
+}
+
 export type WordType =
     | 'adj'
     | 'adv'
@@ -62,6 +69,7 @@ export interface GeneralWord {
 
 export interface Word extends GeneralWord {
     type: WordType;
+    meanings?: Meaning[];
     synonyms?: string[]; // Other words with the same meaning
     antonyms?: string[]; // Opposites
     hyponyms?: string[]; // More specific words
