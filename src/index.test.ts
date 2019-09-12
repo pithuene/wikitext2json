@@ -1,17 +1,17 @@
-import { wikitextToJSON } from "./index";
-import { headingTree, splitLines } from "./tree";
-import { isDocumentBranch } from "./types";
-import { objectsFromString } from "./objects";
-import { parseMeaning } from "./meaning";
+import { wikitextToJSON } from './index';
+import { headingTree, splitLines } from './tree';
+import { isDocumentBranch } from './types';
+import { objectsFromString } from './objects';
+import { parseMeaning } from './meaning';
 
-test("empty string returns empty object", () => {
-  expect(headingTree(splitLines(""))).toStrictEqual({});
+test('empty string returns empty object', () => {
+    expect(headingTree(splitLines(''))).toStrictEqual({});
 });
 
-test("headlines produce object structure", () => {
-  const actual = headingTree(
-    splitLines(
-      `Pretext
+test('headlines produce object structure', () => {
+    const actual = headingTree(
+        splitLines(
+            `Pretext
     ==English==
     Some Text
     ===Etymology===
@@ -27,19 +27,19 @@ test("headlines produce object structure", () => {
 
     ===Noun===
 `
-    )
-  );
-  expect(actual._content).toStrictEqual(["Pretext"]);
-  expect(actual).toHaveProperty("English.Etymology");
-  expect(actual).toHaveProperty("English.Noun");
-  expect(actual).toHaveProperty("German.Noun");
-  expect(
-    isDocumentBranch(actual.German) ? actual.German._content[0] : ""
-  ).toStrictEqual("Bohrmaschine!");
+        )
+    );
+    expect(actual._content).toStrictEqual(['Pretext']);
+    expect(actual).toHaveProperty('English.Etymology');
+    expect(actual).toHaveProperty('English.Noun');
+    expect(actual).toHaveProperty('German.Noun');
+    expect(
+        isDocumentBranch(actual.German) ? actual.German._content[0] : ''
+    ).toStrictEqual('Bohrmaschine!');
 });
 
-test("objects from string", () => {
-  const input = `
+test('objects from string', () => {
+    const input = `
   {{ws header}}
 
 ==English==
@@ -55,13 +55,13 @@ test("objects from string", () => {
 {{ws|statement}}
 {{ws endlist}}
   `;
-  objectsFromString(input);
+    objectsFromString(input);
 });
 
 test("object structure complete word: 'nonsense'", () => {
-  const actual = wikitextToJSON(
-    "nonsense",
-    `{{also|non-sense}}
+    const actual = wikitextToJSON(
+        'nonsense',
+        `{{also|non-sense}}
 ==English==
 
 ===Alternative forms===
@@ -286,66 +286,66 @@ From {{der|mfe|en|nonsense}}.
 
 ====Alternative forms====
 * nonsens`
-  );
-  expect(actual).toBeDefined();
+    );
+    expect(actual).toBeDefined();
 });
 
-test("meaning", () => {
-  const meaning = parseMeaning([
-    "{{wikipedia}}",
-    "{{en-noun|-|s}}",
-    "",
-    "# Letters or words, in writing or speech, that have no meaning or pattern or seem to have no meaning.",
-    "#: {{ux|en|After my father had a stroke, every time he tried to talk, it sounded like '''nonsense'''.}}",
-    "# An untrue statement.",
-    "#: {{ux|en|He says that I stole his computer, but that's just '''nonsense'''.}}",
-    "# That which is silly, [[illogical]] and lacks any meaning, [[reason]] or value; that which does not make [[sense]].",
-    "# Something foolish.",
-    "#* {{quote-journal|lang=en|date=October 9 2008|title=Nick Leeson has some lessons for this collapse|work=Telegraph.co.uk|passage=and central banks lend vast sums against marshmallow backed securities, or other '''nonsenses''' creative bankers dreamed up.}}",
-    "# {{lb|en|literature}} A type of poetry that contains strange or surreal ideas, as, for example, that written by {{w|Edward Lear}}.",
-    "# {{lb|en|biology}} A damaged DNA sequence whose products are not biologically active, that is, that does nothing.",
-    ""
-  ]);
-  expect(meaning).toStrictEqual([
-    {
-      meaning:
-        "Letters or words, in writing or speech, that have no meaning or pattern or seem to have no meaning.",
-      examples: [
-        "{{ux|en|After my father had a stroke, every time he tried to talk, it sounded like '''nonsense'''.}}"
-      ],
-      quotes: []
-    },
-    {
-      meaning: "An untrue statement.",
-      examples: [
-        "{{ux|en|He says that I stole his computer, but that's just '''nonsense'''.}}"
-      ],
-      quotes: []
-    },
-    {
-      meaning:
-        "That which is silly, [[illogical]] and lacks any meaning, [[reason]] or value; that which does not make [[sense]].",
-      examples: [],
-      quotes: []
-    },
-    {
-      meaning: "Something foolish.",
-      examples: [],
-      quotes: [
-        "{{quote-journal|lang=en|date=October 9 2008|title=Nick Leeson has some lessons for this collapse|work=Telegraph.co.uk|passage=and central banks lend vast sums against marshmallow backed securities, or other '''nonsenses''' creative bankers dreamed up.}}"
-      ]
-    },
-    {
-      meaning:
-        "{{lb|en|literature}} A type of poetry that contains strange or surreal ideas, as, for example, that written by {{w|Edward Lear}}.",
-      examples: [],
-      quotes: []
-    },
-    {
-      meaning:
-        "{{lb|en|biology}} A damaged DNA sequence whose products are not biologically active, that is, that does nothing.",
-      examples: [],
-      quotes: []
-    }
-  ]);
+test('meaning', () => {
+    const meaning = parseMeaning([
+        '{{wikipedia}}',
+        '{{en-noun|-|s}}',
+        '',
+        '# Letters or words, in writing or speech, that have no meaning or pattern or seem to have no meaning.',
+        "#: {{ux|en|After my father had a stroke, every time he tried to talk, it sounded like '''nonsense'''.}}",
+        '# An untrue statement.',
+        "#: {{ux|en|He says that I stole his computer, but that's just '''nonsense'''.}}",
+        '# That which is silly, [[illogical]] and lacks any meaning, [[reason]] or value; that which does not make [[sense]].',
+        '# Something foolish.',
+        "#* {{quote-journal|lang=en|date=October 9 2008|title=Nick Leeson has some lessons for this collapse|work=Telegraph.co.uk|passage=and central banks lend vast sums against marshmallow backed securities, or other '''nonsenses''' creative bankers dreamed up.}}",
+        '# {{lb|en|literature}} A type of poetry that contains strange or surreal ideas, as, for example, that written by {{w|Edward Lear}}.',
+        '# {{lb|en|biology}} A damaged DNA sequence whose products are not biologically active, that is, that does nothing.',
+        '',
+    ]);
+    expect(meaning).toStrictEqual([
+        {
+            meaning:
+                'Letters or words, in writing or speech, that have no meaning or pattern or seem to have no meaning.',
+            examples: [
+                "{{ux|en|After my father had a stroke, every time he tried to talk, it sounded like '''nonsense'''.}}",
+            ],
+            quotes: [],
+        },
+        {
+            meaning: 'An untrue statement.',
+            examples: [
+                "{{ux|en|He says that I stole his computer, but that's just '''nonsense'''.}}",
+            ],
+            quotes: [],
+        },
+        {
+            meaning:
+                'That which is silly, [[illogical]] and lacks any meaning, [[reason]] or value; that which does not make [[sense]].',
+            examples: [],
+            quotes: [],
+        },
+        {
+            meaning: 'Something foolish.',
+            examples: [],
+            quotes: [
+                "{{quote-journal|lang=en|date=October 9 2008|title=Nick Leeson has some lessons for this collapse|work=Telegraph.co.uk|passage=and central banks lend vast sums against marshmallow backed securities, or other '''nonsenses''' creative bankers dreamed up.}}",
+            ],
+        },
+        {
+            meaning:
+                '{{lb|en|literature}} A type of poetry that contains strange or surreal ideas, as, for example, that written by {{w|Edward Lear}}.',
+            examples: [],
+            quotes: [],
+        },
+        {
+            meaning:
+                '{{lb|en|biology}} A damaged DNA sequence whose products are not biologically active, that is, that does nothing.',
+            examples: [],
+            quotes: [],
+        },
+    ]);
 });
