@@ -2,7 +2,8 @@ import { MeaningType, Meaning } from './types';
 
 export function extractMeaningContext(meaning: Meaning): Meaning {
     const matches = meaning.meaning.match(/\{\{lb\|en\|[^\{\}]*\}\}/);
-    if (matches === null || matches.length <= 0) return meaning;
+    if (matches === null || matches.length <= 0)
+        return { ...meaning, contexts: [] };
     meaning.contexts = matches[0]
         .slice(8, -2)
         .split('|')
@@ -15,6 +16,7 @@ export function extractMeaningContext(meaning: Meaning): Meaning {
 }
 
 export function parseMeaning(content: string[]): Meaning[] {
+    if (!content || content.length <= 0) return [];
     const lines = content
         .filter(line => line.startsWith('#'))
         .map(line => {
