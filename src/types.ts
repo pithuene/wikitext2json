@@ -79,6 +79,8 @@ export interface Word extends GeneralWord {
 
 export type DegreeOfComparison = 'positive' | 'comparative' | 'superlative';
 
+export type GrammaticalNumber = 'singular' | 'plural';
+
 export interface Adjective extends Word {
     type: 'adj';
     degreeOfComparison: DegreeOfComparison;
@@ -105,7 +107,7 @@ export interface Interjection extends Word {
 
 export interface Noun extends Word {
     type: 'noun' | 'properNoun';
-    grammaticalNumber: 'singular' | 'plural';
+    grammaticalNumber: GrammaticalNumber;
     singularForm: string;
 }
 

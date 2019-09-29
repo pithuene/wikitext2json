@@ -8,6 +8,7 @@ import {
 import { headingTree, searchTreeProperty, splitLines } from './tree';
 import { objectsFromString, objectStringToPlaintext } from './objects';
 import { parseAdjective } from './wordTypes/adjective';
+import { parseNoun } from './wordTypes/noun';
 
 const wordTypes = {
     adj: 'Adjective',
@@ -163,6 +164,7 @@ function interpretTree(
             case 'interj':
                 break;
             case 'noun':
+                words.push(parseNoun(generalWord, presentWordTypes[type]));
                 break;
             case 'num':
                 break;
