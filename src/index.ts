@@ -7,6 +7,7 @@ import {
 } from './types';
 import { headingTree, searchTreeProperty, splitLines } from './tree';
 import { objectsFromString, objectStringToPlaintext } from './objects';
+import { parseAdjective } from './wordTypes/adjective';
 
 const wordTypes = {
     adj: 'Adjective',
@@ -145,6 +146,7 @@ function interpretTree(
         }
         switch (type) {
             case 'adj':
+                words.push(parseAdjective(generalWord, presentWordTypes[type]));
                 break;
             case 'adv':
                 break;
