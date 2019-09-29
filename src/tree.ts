@@ -22,15 +22,16 @@ export function headingTree(lines: string[]): WikitextDocumentBranch {
             output[
                 /={2,6}([^=]*)={2,6}/.exec(lines[ln])[1].replace(' ', '_')
             ] = headingTree(lines.slice(ln + 1, blockend + 1));
-            if (blockend > ln) ln = blockend;
+            ln = blockend;
         } else {
             if (!output._content) output._content = [];
             output._content.push(lines[ln]);
         }
     }
-    output._objects = objectsFromString(
-        output._content.reduce((a, b) => a + ' ' + b)
-    );
+    output._objects =
+        output._content && output._content.length > 0
+            ? objectsFromString(output._content.reduce((a, b) => a + ' ' + b))
+            : [];
     return output;
 }
 
@@ -41,16 +42,14 @@ export function splitLines(input: string): string[] {
 export function searchTreeProperty(
     tree: any,
     propertyName: string
-): WikitextDocumentBranch {
+): WikitextDocumentBranch | null {
     if (tree !== Object(tree)) return null;
     if (Object.prototype.hasOwnProperty.call(tree, propertyName)) {
         return tree[propertyName];
     }
     for (const key in tree) {
-        if (Object.prototype.hasOwnProperty.call(tree, key)) {
-            const element = searchTreeProperty(tree[key], propertyName);
-            if (element) return element;
-        }
+        const element = searchTreeProperty(tree[key], propertyName);
+        if (element) return element;
     }
     return null;
 }

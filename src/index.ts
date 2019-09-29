@@ -29,6 +29,7 @@ function interpretPronunciation(
     word: GeneralWord,
     pronunciationBranch: WikitextDocumentBranch
 ): GeneralWord {
+    if (!pronunciationBranch) return word;
     pronunciationBranch._content.forEach((line: string) => {
         const objs: WikitextObject[] = objectsFromString(line);
         // Pronunciation
@@ -57,6 +58,7 @@ function interpretAlternativeForms(
     word: GeneralWord,
     altFormBranch: WikitextDocumentBranch
 ): GeneralWord {
+    if (!altFormBranch) return word;
     altFormBranch._content.forEach(line => {
         const objs = objectsFromString(line);
         if (objs.findIndex(obj => obj[0] === 'l' && obj[1] === 'en') !== -1) {
@@ -75,6 +77,7 @@ function interpretDerivedTerms(
     word: GeneralWord,
     dervTermsBranch: WikitextDocumentBranch
 ): GeneralWord {
+    if (!dervTermsBranch) return word;
     dervTermsBranch._content.forEach(line => {
         const objs = objectsFromString(line);
         if (
@@ -94,7 +97,7 @@ function interpretDerivedTerms(
 function interpretTree(
     word: string,
     wikitextTree: WikitextDocumentBranch
-): GeneralWord[] {
+): Word[] {
     if (!wikitextTree.English) return [];
     const treeEnglish = wikitextTree.English;
     let generalWord: GeneralWord = {
@@ -118,10 +121,13 @@ function interpretTree(
         generalWord,
         searchTreeProperty(treeEnglish, 'Derived_terms')
     );
+    const etymologyBranch = searchTreeProperty(treeEnglish, 'Etymology');
     generalWord.etymology = objectStringToPlaintext(
-        searchTreeProperty(treeEnglish, 'Etymology')._content.reduce((a, b) =>
-            (a.trim() + ' ' + b.trim()).trim()
-        )
+        etymologyBranch
+            ? etymologyBranch._content.reduce((a, b) =>
+                  (a.trim() + ' ' + b.trim()).trim()
+              )
+            : ''
     );
 
     const presentWordTypes = {};
@@ -139,7 +145,7 @@ function interpretTree(
         const wordTypeBranch = presentWordTypes[type];
         if (
             wordTypeBranch._objects.findIndex(
-                o => o[0] === 'misspelling of'
+                (o: string[]) => o[0] === 'misspelling of'
             ) !== -1
         ) {
             continue;
@@ -176,11 +182,10 @@ function interpretTree(
                 throw 'Invalid word type';
         }
     }
-
-    if (presentWordTypes) return [generalWord];
+    return words;
 }
 
-export function wikitextToJSON(word: string, wikitext: string): GeneralWord[] {
+export function wikitextToJSON(word: string, wikitext: string): Word[] {
     const wikitextLines = splitLines(wikitext);
     const output = interpretTree(word, headingTree(wikitextLines));
     return output;
